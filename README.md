@@ -40,8 +40,8 @@ The app is architected as follows:
 
 ### Quickstart
 
-1. `git clone git@github.com:petabridge/azure-app-service-akkadotnet.git akka-on-app-service`
-2. `cd akka-on-app-service`
+1. `git clone git@github.com:petabridge/azure-container-app-akkadotnet.git akka-on-container-apps`
+2. `cd akka-on-container-apps`
 3. `dotnet run --project src\Akka.ShoppingCart\Akka.ShoppingCart.csproj`
 
 ## Deploying To Azure Container Apps
