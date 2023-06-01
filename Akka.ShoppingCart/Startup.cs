@@ -1,11 +1,12 @@
 ﻿// -----------------------------------------------------------------------
 //  <copyright file="Startup.cs" company="Petabridge, LLC">
-//      Copyright (C) 2015-2022 Petabridge, LLC <https://petabridge.com>
+//      Copyright (C) 2015-2023 Petabridge, LLC <https://petabridge.com>
 //      Copyright (c) Microsoft. All rights reserved.
 //      Licensed under the MIT License.
 //  </copyright>
 // -----------------------------------------------------------------------
 
+using Akka.Discovery.Config.Hosting;
 using LogLevel = Akka.Event.LogLevel;
 using Dns = System.Net.Dns;
 
@@ -62,24 +63,28 @@ public class Startup
                 // For local development, we will be using Akka.Discovery.ConfigServiceDiscovery instead of Akka.Discovery.Azure
                 // We will also use in memory persistence providers instead of using Akka.Persistence.Azure
                 builder
-                    .WithAkkaManagement(setup =>
+                    .WithAkkaManagement(new AkkaManagementOptions
                     {
-                        setup.Http.Hostname = "localhost";
-                        setup.Http.BindHostname = "localhost";
-                        setup.Http.Port = managementPort;
-                        setup.Http.BindPort = managementPort;
+                        HostName = "localhost",
+                        BindHostName = "localhost",
+                        Port = managementPort,
+                        BindPort = managementPort
                     })
                     .WithClusterBootstrap(setup =>
                     {
-                        setup.ContactPointDiscovery = new ContactPointDiscoverySetup
-                        {
-                            ServiceName = nameof(ShoppingCartService),
-                            RequiredContactPointsNr = 1
-                        };
+                        setup.ContactPointDiscovery.ServiceName = nameof(ShoppingCartService);
+                        setup.ContactPointDiscovery.RequiredContactPointsNr = 1;
                     })
-                    .WithConfigDiscovery(new Dictionary<string, List<string>>
+                    .WithConfigDiscovery(options =>
                     {
-                        [nameof(ShoppingCartService)] = new() { $"localhost:{managementPort}" }
+                        options.Services = new List<Service>
+                        {
+                            new Service
+                            {
+                                Name = nameof(ShoppingCartService),
+                                Endpoints = new[] { $"localhost:{managementPort}" }
+                            }
+                        };
                     })
                     .WithRemoting("localhost", remotePort)
                     .WithClustering()
@@ -99,23 +104,23 @@ public class Startup
             else
             {
                 var connectionString = _configuration["AZURE_STORAGE_CONNECTION_STRING"];
+                if (string.IsNullOrWhiteSpace(connectionString))
+                    throw new Exception("Missing AZURE_STORAGE_CONNECTION_STRING environment variable");
+                
                 var endpointAddress = GetPublicIpAddress();
                 
                 builder
-                    .WithAkkaManagement(setup =>
+                    .WithAkkaManagement(new AkkaManagementOptions
                     {
-                        setup.Http.Hostname = endpointAddress;
-                        setup.Http.BindHostname = endpointAddress;
-                        setup.Http.Port = managementPort;
-                        setup.Http.BindPort = managementPort;
+                        HostName = endpointAddress,
+                        BindHostName = endpointAddress,
+                        Port = managementPort,
+                        BindPort = managementPort
                     })
                     .WithClusterBootstrap(setup =>
                     {
-                        setup.ContactPointDiscovery = new ContactPointDiscoverySetup
-                        {
-                            ServiceName = nameof(ShoppingCartService),
-                            RequiredContactPointsNr = 1
-                        };
+                        setup.ContactPointDiscovery.ServiceName = nameof(ShoppingCartService);
+                        setup.ContactPointDiscovery.RequiredContactPointsNr = 1;
                     })
                     .WithAzureDiscovery(setup =>
                     {

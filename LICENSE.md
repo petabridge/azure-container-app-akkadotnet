@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (C) 2015 - 2022 Petabridge, LLC <https://petabridge.com>
+Copyright (C) 2015 - 2023 Petabridge, LLC <https://petabridge.com>
 
 Copyright (c) Microsoft Corporation.
 

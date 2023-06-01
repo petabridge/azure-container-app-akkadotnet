@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
 //  <copyright file="HostingExtensions.cs" company="Petabridge, LLC">
-//      Copyright (C) 2015-2022 Petabridge, LLC <https://petabridge.com>
+//      Copyright (C) 2015-2023 Petabridge, LLC <https://petabridge.com>
 //      Copyright (c) Microsoft. All rights reserved.
 //      Licensed under the MIT License.
 //  </copyright>
@@ -31,32 +31,5 @@ public static class HostingExtensions
                 extractEntityId: Messages.ShoppingCart.ExtractEntityId,
                 extractShardId: Messages.ShoppingCart.ExtractShardId,
                 shardOptions: new ShardOptions());
-    }
-
-    public static AkkaConfigurationBuilder WithConfigDiscovery(
-        this AkkaConfigurationBuilder builder,
-        Dictionary<string, List<string>> services)
-    {
-        var sb = new StringBuilder();
-        foreach (var service in services)
-        {
-            sb.AppendLine($@"
-{service.Key} {{
-    endpoints = [ {string.Join(", ", service.Value.Select(s => $"\"{s}\""))} ]
-}}
-");
-        }
-        var config = ConfigurationFactory.ParseString($@"
-akka.discovery{{
-    method = config
-    config {{
-        services {{
-            {sb}
-        }}
-    }}
-}}").WithFallback(DiscoveryProvider.DefaultConfiguration());
-        
-        builder.AddHocon(config, HoconAddMode.Prepend);
-        return builder;
     }
 }
